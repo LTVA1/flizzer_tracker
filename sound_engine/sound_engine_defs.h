@@ -17,6 +17,10 @@
 #define SINE_LUT_SIZE 256
 #define SINE_LUT_BITDEPTH 8
 
+#define WAVE_NAME_LEN 16
+#define DELTA_COUNTER_MIDDLE ((1 << 6) / 2)
+#define DELTA_COUNTER_MAX ((1 << 6) - 1)
+
 #define MAX_ADSR (0xff << 17)
 #define MAX_ADSR_VOLUME 0x80
 #define BASE_FREQ 22050
@@ -41,7 +45,12 @@ typedef enum {
     SE_ENABLE_RING_MOD = 4,
     SE_ENABLE_HARD_SYNC = 8,
     SE_ENABLE_KEYDOWN_SYNC = 16, // sync oscillators on keydown
+    SE_ENABLE_SAMPLE = 32,
 } SoundEngineFlags;
+
+typedef enum {
+    SE_SAMPLE_LOOP = 1,
+} SoundEngineDPCMsampleFlags;
 
 typedef enum {
     FIL_OUTPUT_LOWPASS = 1,
@@ -73,6 +82,18 @@ typedef struct {
 } SoundEngineFilter;
 
 typedef struct {
+    uint32_t length, loop_start, loop_end, position;
+    uint8_t delta_counter; //0-63
+    uint8_t initial_delta_counter_position;
+    uint8_t delta_counter_position_on_loop_start;
+    char name[WAVE_NAME_LEN];
+    uint8_t* data;
+
+    uint8_t flags;
+    bool playing;
+} SoundEngineDPCMsample;
+
+typedef struct {
     uint32_t accumulator;
     uint32_t frequency;
     uint8_t waveform;
@@ -88,6 +109,8 @@ typedef struct {
     uint8_t filter_mode;
 
     SoundEngineFilter filter;
+
+    SoundEngineDPCMsample* sample;
 } SoundEngineChannel;
 
 typedef struct {

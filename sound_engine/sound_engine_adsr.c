@@ -4,6 +4,7 @@ int32_t sound_engine_cycle_and_output_adsr(
     int32_t input,
     SoundEngine* eng,
     SoundEngineADSR* adsr,
+    SoundEngineChannel* ch,
     uint16_t* flags) {
     switch(adsr->envelope_state) {
     case ATTACK: {
@@ -47,6 +48,11 @@ int32_t sound_engine_cycle_and_output_adsr(
         else {
             adsr->envelope_state = DONE;
             *flags &= ~SE_ENABLE_GATE;
+
+            if(ch->sample) {
+                ch->sample->playing = false;
+            }
+
             adsr->envelope = 0;
         }
 

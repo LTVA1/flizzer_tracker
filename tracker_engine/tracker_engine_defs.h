@@ -12,6 +12,7 @@
 
 #define SONG_MAX_CHANNELS NUM_CHANNELS
 #define MAX_INSTRUMENTS 31
+#define MAX_DPCM_SAMPLES 32
 #define MAX_PATTERN_LENGTH 256
 #define MAX_PATTERNS 256
 #define MAX_SEQUENCE_LENGTH 256
@@ -90,9 +91,8 @@ typedef enum {
     TE_EFFECT_SET_SUSTAIN = 0x1700, // Nxx
     TE_EFFECT_SET_RELEASE = 0x1800, // Oxx
     TE_EFFECT_PROGRAM_RESTART = 0x1900, // Pxx
-    /*
-    TE_EFFECT_ = 0x1a00, //Qxx
-    */
+
+    TE_EFFECT_SET_DPCM_SAMPLE = 0x1a00, //Qxx
 
     TE_EFFECT_SET_RING_MOD_SRC = 0x1b00, // Rxx
     TE_EFFECT_SET_HARD_SYNC_SRC = 0x1c00, // Sxx
@@ -146,6 +146,9 @@ typedef struct {
 
     uint8_t base_note;
     int8_t finetune;
+
+    uint8_t sample;
+    SoundEngineDPCMsample* sample_pointer;
 } Instrument;
 
 typedef struct {
@@ -175,6 +178,9 @@ typedef struct {
     uint16_t pw;
 
     uint8_t slide_speed;
+
+    uint8_t sample_index;
+    SoundEngineDPCMsample* sample;
 } TrackerEngineChannel;
 
 typedef struct {
@@ -208,6 +214,8 @@ typedef struct {
     uint8_t speed, rate;
 
     uint8_t loop_start, loop_end;
+
+    SoundEngineDPCMsample* samples[MAX_DPCM_SAMPLES];
 } TrackerSong;
 
 typedef struct {

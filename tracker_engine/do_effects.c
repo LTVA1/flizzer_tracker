@@ -427,6 +427,19 @@ void do_command(
         break;
     }
 
+    case TE_EFFECT_SET_DPCM_SAMPLE: {
+        if(tick == 0) {
+            if(tracker_engine->song->samples[(opcode & 0xff)] != 0) {
+                se_channel->sample = tracker_engine->song->samples[(opcode & 0xff)];
+                se_channel->sample->delta_counter =
+                    se_channel->sample->initial_delta_counter_position;
+                se_channel->sample->position = 0;
+            }
+        }
+
+        break;
+    }
+
     case TE_EFFECT_PORTA_UP_SEMITONE: {
         uint32_t prev = te_channel->note;
 

@@ -5,6 +5,7 @@
 #include "sound_engine_defs.h"
 #include "sound_engine_filter.h"
 #include "sound_engine_osc.h"
+#include "sound_engine_dpcm.h"
 
 void sound_engine_init(
     SoundEngine* sound_engine,

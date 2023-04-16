@@ -30,6 +30,16 @@ void tracker_engine_deinit_song(TrackerSong* song, bool free_song) {
         }
     }
 
+    for(int i = 0; i < MAX_DPCM_SAMPLES; i++) {
+        if(song->samples[i] != NULL) {
+            if(song->samples[i]->data) {
+                free(song->samples[i]->data);
+            }
+
+            free(song->samples[i]);
+        }
+    }
+
     if(free_song) {
         free(song);
     }
@@ -194,6 +204,29 @@ void tracker_engine_trigger_instrument_internal(
 
         se_channel->accumulator = 0;
         se_channel->lfsr = RANDOM_SEED;
+    }
+
+    if(pinst->sound_engine_flags & SE_ENABLE_SAMPLE) {
+        if(tracker_engine->song) {
+            if(tracker_engine->song->samples[pinst->sample] != 0) {
+                se_channel->sample = tracker_engine->song->samples[pinst->sample];
+                se_channel->sample->delta_counter =
+                    se_channel->sample->initial_delta_counter_position;
+                se_channel->sample->position = 0;
+                se_channel->sample->playing = true;
+            }
+        }
+
+        else {
+            if(pinst->sample_pointer != 0) {
+                te_channel->sample = pinst->sample_pointer;
+                se_channel->sample = te_channel->sample;
+                se_channel->sample->delta_counter =
+                    se_channel->sample->initial_delta_counter_position;
+                se_channel->sample->position = 0;
+                se_channel->sample->playing = true;
+            }
+        }
     }
 
     if(pinst->flags & TE_SET_CUTOFF) {

@@ -108,6 +108,8 @@ void sound_engine_fill_buffer(
             SoundEngineChannel* channel = &sound_engine->channel[chan];
 
             if(channel->frequency > 0) {
+                channel->sync_bit = 0;
+
                 uint32_t prev_acc = channel->accumulator;
 
                 channel->accumulator += channel->frequency;
@@ -134,7 +136,11 @@ void sound_engine_fill_buffer(
                 }
 
                 channel_output_final[chan] = sound_engine_cycle_and_output_adsr(
-                    channel_output[chan], sound_engine, &channel->adsr, &channel->flags);
+                    channel_output[chan], sound_engine, &channel->adsr, channel, &channel->flags);
+
+                if(channel->flags & SE_ENABLE_SAMPLE) {
+                    channel_output_final[chan] += (int32_t)sound_engine_get_dpcm(channel->sample);
+                }
 
                 if(channel->flags & SE_ENABLE_FILTER) {
                     if(channel->filter_mode != 0) {

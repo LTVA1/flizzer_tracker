@@ -6,4 +6,5 @@ int32_t sound_engine_cycle_and_output_adsr(
     int32_t input,
     SoundEngine* eng,
     SoundEngineADSR* adsr,
+    SoundEngineChannel* ch,
     uint16_t* flags);

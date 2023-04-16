@@ -107,6 +107,40 @@ int32_t flizzer_tracker_app(void* p) {
 
     FlizzerTrackerApp* tracker = init_tracker(44100, 50, true, 1024);
 
+    tracker->song.samples[0] = (SoundEngineDPCMsample*)malloc(sizeof(SoundEngineDPCMsample));
+
+    memset(tracker->song.samples[0], 0, sizeof(SoundEngineDPCMsample));
+
+    tracker->song.samples[0]->data = (uint8_t*)malloc(16);
+
+    tracker->song.samples[0]->initial_delta_counter_position = 32;
+    tracker->song.samples[0]->delta_counter_position_on_loop_start = 32;
+    tracker->song.samples[0]->length = 8 * 16;
+    tracker->song.samples[0]->flags |= SE_SAMPLE_LOOP;
+    tracker->song.samples[0]->loop_start = 0;
+    tracker->song.samples[0]->loop_end = 8 * 16 - 1;
+
+    for(uint8_t i = 0; i < 4; i++) {
+        tracker->song.samples[0]->data[i] = 0;
+    }
+
+    for(uint8_t i = 4; i < 12; i++) {
+        tracker->song.samples[0]->data[i] = 0xff;
+    }
+
+    for(uint8_t i = 12; i < 16; i++) {
+        tracker->song.samples[0]->data[i] = 0;
+    }
+
+    tracker->song.instrument[0]->waveform = 0;
+
+    tracker->song.instrument[0]->adsr.a = 0;
+    tracker->song.instrument[0]->adsr.s = 0xff;
+
+    tracker->song.instrument[0]->sample = 0;
+    tracker->song.instrument[0]->sample_pointer = tracker->song.samples[0];
+    tracker->song.instrument[0]->sound_engine_flags |= SE_ENABLE_SAMPLE;
+
     // Текущее событие типа кастомного типа FlizzerTrackerEvent
     FlizzerTrackerEvent event;
 
