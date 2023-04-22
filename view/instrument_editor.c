@@ -140,6 +140,9 @@ static const char* instrument_editor_params_description[] = {
     "PWM DEPTH",
     "PWM DELAY (IN TICKS)",
     "DON'T RESTART PROGRAM ON KEYDOWN",
+    "ENABLE DPCM SAMPLE",
+    "SAMPLE NUMBER",
+    "SAMPLE:OVERRIDE VOLUME ENVELOPE",
     "PROG.PERIOD (00 = PROGRAM OFF)",
 };
 
@@ -220,30 +223,40 @@ void draw_instrument_view(Canvas* canvas, FlizzerTrackerApp* tracker) {
         }
     }
 
-    draw_inst_text_two_digits(
-        tracker,
-        canvas,
-        EDIT_INSTRUMENT,
-        INST_SLIDESPEED,
-        "SL.SPD:",
-        0,
-        17 - shift,
-        inst->slide_speed);
+    if(shift < 18) {
+        draw_inst_text_two_digits(
+            tracker,
+            canvas,
+            EDIT_INSTRUMENT,
+            INST_SLIDESPEED,
+            "SL.SPD:",
+            0,
+            17 - shift,
+            inst->slide_speed);
 
-    draw_inst_flag(
-        tracker, canvas, EDIT_INSTRUMENT, INST_SETPW, "PW:", 36, 17 - shift, inst->flags, TE_SET_PW);
-    draw_inst_text_two_digits(
-        tracker, canvas, EDIT_INSTRUMENT, INST_PW, "", 54, 17 - shift, inst->pw);
-    draw_inst_flag(
-        tracker,
-        canvas,
-        EDIT_INSTRUMENT,
-        INST_SETCUTOFF,
-        "CUT",
-        61,
-        17 - shift,
-        inst->flags,
-        TE_SET_CUTOFF);
+        draw_inst_flag(
+            tracker,
+            canvas,
+            EDIT_INSTRUMENT,
+            INST_SETPW,
+            "PW:",
+            36,
+            17 - shift,
+            inst->flags,
+            TE_SET_PW);
+        draw_inst_text_two_digits(
+            tracker, canvas, EDIT_INSTRUMENT, INST_PW, "", 54, 17 - shift, inst->pw);
+        draw_inst_flag(
+            tracker,
+            canvas,
+            EDIT_INSTRUMENT,
+            INST_SETCUTOFF,
+            "CUT",
+            61,
+            17 - shift,
+            inst->flags,
+            TE_SET_CUTOFF);
+    }
 
     draw_inst_flag(
         tracker,
@@ -482,6 +495,40 @@ void draw_instrument_view(Canvas* canvas, FlizzerTrackerApp* tracker) {
             65 - shift,
             inst->flags,
             TE_PROG_NO_RESTART);
+    }
+
+    if(shift >= 18) {
+        draw_inst_flag(
+            tracker,
+            canvas,
+            EDIT_INSTRUMENT,
+            INST_ENABLESAMPLE,
+            "SAMPLE:",
+            0,
+            65 + 6 - shift,
+            inst->sound_engine_flags,
+            SE_ENABLE_SAMPLE);
+
+        draw_inst_text_two_digits(
+            tracker,
+            canvas,
+            EDIT_INSTRUMENT,
+            INST_SAMPLENUMBER,
+            "",
+            34,
+            65 + 6 - shift,
+            inst->sample);
+
+        draw_inst_flag(
+            tracker,
+            canvas,
+            EDIT_INSTRUMENT,
+            INST_SAMPLEOVERRIDEVOLUMEENVELOPE,
+            "OENV",
+            41,
+            65 + 6 - shift,
+            inst->sound_engine_flags,
+            SE_SAMPLE_OVERRIDE_ENVELOPE);
     }
 
     draw_inst_text_two_digits(

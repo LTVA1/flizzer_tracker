@@ -166,6 +166,174 @@ bool load_song_util(FlizzerTrackerApp* tracker, FuriString* filepath) {
     return result;
 }
 
+uint8_t get_sample(uint16_t num_channels, uint16_t bit_depth, Stream* stream) {
+    uint8_t sample = 32;
+
+    bool fuck;
+
+    if(bit_depth == 8 && num_channels == 1) //8 bit unsigned mono
+    {
+        uint8_t temp = 0;
+        fuck = stream_read(stream, (uint8_t*)&temp, sizeof(temp));
+
+        sample = temp / 4;
+        return sample; //scaled to 0-63
+    }
+
+    if(bit_depth == 8 && num_channels == 2) //8 bit unsigned stereo
+    {
+        uint8_t temp_r = 0;
+        uint8_t temp_l = 0;
+        fuck = stream_read(stream, (uint8_t*)&temp_r, sizeof(temp_r));
+        fuck = stream_read(stream, (uint8_t*)&temp_l, sizeof(temp_l));
+
+        sample = ((uint16_t)temp_r + temp_l) / 2 / 4;
+        return sample; //scaled to 0-63
+    }
+
+    if(bit_depth == 16 && num_channels == 1) //16 bit signed mono
+    {
+        int16_t temp = 0;
+        fuck = stream_read(stream, (uint8_t*)&temp, sizeof(temp));
+
+        sample = ((int32_t)temp + 32767) / 256 / 4;
+        return sample; //scaled to 0-63
+    }
+
+    if(bit_depth == 16 && num_channels == 2) //16 bit signed stereo
+    {
+        int16_t temp_r = 0;
+        int16_t temp_l = 0;
+        fuck = stream_read(stream, (uint8_t*)&temp_r, sizeof(temp_r));
+        fuck = stream_read(stream, (uint8_t*)&temp_l, sizeof(temp_l));
+
+        sample = ((int32_t)temp_r + (int32_t)temp_l + 32767 + 32767) / 2 / 4 / 256;
+        return sample; //scaled to 0-63
+    }
+
+    return sample; //scaled to 0-63
+    UNUSED(fuck);
+}
+
+void import_sample_inner(Stream* stream, SoundEngineDPCMsample* sample, FlizzerTrackerApp* tracker) {
+    uint16_t num_channels = 0;
+    uint16_t bit_depth = 0;
+    uint32_t sample_size = 0;
+
+    bool fuck = stream_seek(stream, 22, StreamOffsetFromStart);
+    fuck = stream_read(stream, (uint8_t*)&num_channels, sizeof(num_channels));
+
+    fuck = stream_seek(stream, 34, StreamOffsetFromStart);
+    fuck = stream_read(stream, (uint8_t*)&bit_depth, sizeof(bit_depth));
+
+    char data_sig[5];
+    data_sig[4] = '\0';
+
+    uint16_t pos = 0;
+
+    while(strcmp(data_sig, "data") !=
+          0) //because not all wav files' headers are 44 bytes long! ffmpeg no exception
+    {
+        fuck = stream_seek(stream, pos, StreamOffsetFromStart);
+        fuck = stream_read(stream, (uint8_t*)data_sig, 4);
+        pos++;
+    }
+
+    fuck = stream_seek(
+        stream,
+        pos + 3,
+        StreamOffsetFromStart); //read wav file size (offset 3 because we got one more byr from pos++ above)
+    fuck = stream_read(stream, (uint8_t*)&sample_size, sizeof(sample_size));
+
+    pos = stream_tell(stream);
+
+    tracker->bit_depth = bit_depth;
+    tracker->num_channels = num_channels;
+    tracker->length = sample_size;
+
+    uint32_t num_samples = sample_size / (bit_depth / 8) / num_channels;
+
+    if(num_samples / 8 >
+       memmgr_get_free_heap() - 5 * 1024) //the resulting DPCM sample is too big to fit in RAM
+    {
+        return;
+    }
+
+    if(sample->loop_end >= num_samples) {
+        sample->loop_end = num_samples - 1;
+    }
+
+    if(sample->loop_start >= num_samples) {
+        sample->loop_start = 0;
+    }
+
+    sample->length = num_samples;
+
+    uint8_t sample_value = get_sample(num_channels, bit_depth, stream);
+
+    sample->initial_delta_counter_position = sample_value;
+
+    //fuck = stream_seek(stream, pos, StreamOffsetFromStart);
+
+    if(sample->data) {
+        free(sample->data);
+    }
+
+    sample->data = (uint8_t*)malloc(sizeof(uint8_t) * num_samples / 8 + 1);
+    memset(sample->data, 0, sizeof(uint8_t) * num_samples / 8 + 1);
+
+    int8_t delta_counter = sample->initial_delta_counter_position;
+
+    for(tracker->sample_import_progress = 0; tracker->sample_import_progress < num_samples;
+        tracker->sample_import_progress++) //read other samples
+    {
+        sample_value = get_sample(num_channels, bit_depth, stream);
+
+        if(delta_counter <= sample_value) {
+            if(delta_counter < 63) {
+                delta_counter++;
+                sample->data[tracker->sample_import_progress / 8] |=
+                    (1 << (tracker->sample_import_progress & 7));
+            }
+
+            else {
+                delta_counter--;
+            }
+        }
+
+        else {
+            if(delta_counter > 0)
+                delta_counter--;
+
+            else {
+                delta_counter++;
+                sample->data[tracker->sample_import_progress / 8] |=
+                    (1 << (tracker->sample_import_progress & 7));
+            }
+        }
+    }
+
+    recalculate_dpcm_sample_delta_counter_at_loop_start(sample);
+
+    UNUSED(fuck);
+    UNUSED(sample);
+}
+
+bool load_sample_util(FlizzerTrackerApp* tracker, FuriString* filepath) {
+    bool open_file = file_stream_open(
+        tracker->stream, furi_string_get_cstr(filepath), FSAM_READ, FSOM_OPEN_ALWAYS);
+
+    import_sample_inner(tracker->stream, tracker->song.samples[tracker->current_sample], tracker);
+
+    tracker->is_loading_sample = false;
+
+    file_stream_close(tracker->stream);
+    furi_string_free(filepath);
+
+    UNUSED(open_file);
+    return true;
+}
+
 bool load_instrument_disk(TrackerSong* song, uint8_t inst, Stream* stream) {
     set_default_instrument(song->instrument[inst]);
 

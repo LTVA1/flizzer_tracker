@@ -216,6 +216,7 @@ typedef struct {
     uint8_t loop_start, loop_end;
 
     SoundEngineDPCMsample* samples[MAX_DPCM_SAMPLES];
+    uint8_t num_samples;
 } TrackerSong;
 
 typedef struct {

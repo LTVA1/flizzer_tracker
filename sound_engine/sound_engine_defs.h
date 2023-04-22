@@ -17,7 +17,7 @@
 #define SINE_LUT_SIZE 256
 #define SINE_LUT_BITDEPTH 8
 
-#define WAVE_NAME_LEN 16
+#define WAVE_NAME_LEN (32 - 8 + 1)
 #define DELTA_COUNTER_MIDDLE ((1 << 6) / 2)
 #define DELTA_COUNTER_MAX ((1 << 6) - 1)
 
@@ -46,6 +46,7 @@ typedef enum {
     SE_ENABLE_HARD_SYNC = 8,
     SE_ENABLE_KEYDOWN_SYNC = 16, // sync oscillators on keydown
     SE_ENABLE_SAMPLE = 32,
+    SE_SAMPLE_OVERRIDE_ENVELOPE = 64,
 } SoundEngineFlags;
 
 typedef enum {

@@ -354,6 +354,28 @@ void edit_instrument_param(FlizzerTrackerApp* tracker, uint8_t selected_param, i
         break;
     }
 
+    case INST_ENABLESAMPLE: {
+        flipbit(inst->sound_engine_flags, SE_ENABLE_SAMPLE);
+        break;
+    }
+
+    case INST_SAMPLENUMBER: {
+        if((int16_t)inst->sample + (int16_t)delta >= 0 &&
+           (int16_t)inst->sample + (int16_t)delta <= MAX_DPCM_SAMPLES - 1) {
+            inst->sample += delta;
+        }
+
+        if(tracker->song.samples[inst->sample]->data) {
+            tracker->song.num_samples = inst->sample;
+        }
+        break;
+    }
+
+    case INST_SAMPLEOVERRIDEVOLUMEENVELOPE: {
+        flipbit(inst->sound_engine_flags, SE_SAMPLE_OVERRIDE_ENVELOPE);
+        break;
+    }
+
     case INST_PROGRAMEPERIOD: {
         if((int16_t)inst->program_period + (int16_t)delta >= 0 &&
            (int16_t)inst->program_period + (int16_t)delta <= 0xff) {
@@ -435,6 +457,8 @@ void instrument_edit_event(FlizzerTrackerApp* tracker, FlizzerTrackerEvent* even
         case INST_ENABLEKEYSYNC:
         case INST_ENABLEVIBRATO:
         case INST_ENABLEPWM:
+        case INST_ENABLESAMPLE:
+        case INST_SAMPLEOVERRIDEVOLUMEENVELOPE:
         case INST_PROGRESTART: {
             tracker->selected_param++;
 
@@ -489,6 +513,8 @@ void instrument_edit_event(FlizzerTrackerApp* tracker, FlizzerTrackerEvent* even
         case INST_ENABLEKEYSYNC:
         case INST_ENABLEVIBRATO:
         case INST_ENABLEPWM:
+        case INST_ENABLESAMPLE:
+        case INST_SAMPLEOVERRIDEVOLUMEENVELOPE:
         case INST_PROGRESTART: {
             tracker->selected_param--;
 
@@ -528,6 +554,10 @@ void instrument_edit_event(FlizzerTrackerApp* tracker, FlizzerTrackerEvent* even
 
     if(tracker->selected_param > INST_PWMDELAY) {
         tracker->inst_editor_shift = 12;
+    }
+
+    if(tracker->selected_param > INST_PROGRESTART) {
+        tracker->inst_editor_shift = 18;
     }
 
     if(tracker->selected_param < INST_CURRENT_NOTE) {

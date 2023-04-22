@@ -276,6 +276,12 @@ uint32_t calculate_song_size(TrackerSong* song) {
         SONG_HEADER_SIZE + sizeof(Instrument) * song->num_instruments +
         sizeof(TrackerSongPatternStep) * song->num_patterns * song->pattern_length +
         sizeof(TrackerSongSequenceStep) * song->num_sequence_steps;
+
+    song_size += sizeof(SoundEngineDPCMsample) * song->num_samples;
+
+    for(uint8_t i = 0; i < song->num_samples; i++) {
+        song_size += (song->samples[i]->length >> 3);
+    }
     return song_size;
 }
 
@@ -302,6 +308,12 @@ void draw_generic_n_digit_field(
 
         if(tracker->focus == EDIT_INSTRUMENT) {
             if(param != INST_INSTRUMENTNAME) {
+                select_string = false;
+            }
+        }
+
+        if(tracker->focus == EDIT_SAMPLE) {
+            if(param != SAMPLE_NAME) {
                 select_string = false;
             }
         }
@@ -337,6 +349,12 @@ void draw_generic_n_digit_field(
 
         if(tracker->focus == EDIT_INSTRUMENT) {
             if(param != INST_INSTRUMENTNAME) {
+                select_string = false;
+            }
+        }
+
+        if(tracker->focus == EDIT_SAMPLE) {
+            if(param != SAMPLE_NAME) {
                 select_string = false;
             }
         }

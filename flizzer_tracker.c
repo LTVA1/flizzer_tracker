@@ -5,6 +5,7 @@
 #include "util.h"
 #include "view/instrument_editor.h"
 #include "view/pattern_editor.h"
+#include "view/sample_editor.h"
 
 #include "font.h"
 #include <flizzer_tracker_icons.h>
@@ -17,6 +18,23 @@ void draw_callback(Canvas* canvas, void* ctx) {
 
     if(tracker->is_loading || tracker->is_loading_instrument) {
         canvas_draw_str(canvas, 10, 10, "Loading...");
+        return;
+    }
+
+    if(tracker->is_loading_sample) {
+        canvas_draw_str(canvas, 10, 10, "Importing sample...");
+
+        canvas_draw_frame(canvas, 0, 20, 128, 10);
+
+        uint8_t progress = 0;
+
+        if(tracker->song.samples[tracker->current_sample]->length > 0) {
+            progress = (uint64_t)tracker->sample_import_progress * 126 /
+                       tracker->song.samples[tracker->current_sample]->length;
+        }
+
+        canvas_draw_box(canvas, 1, 21, progress, 8);
+
         return;
     }
 
@@ -54,6 +72,11 @@ void draw_callback(Canvas* canvas, void* ctx) {
     case INST_EDITOR_VIEW: {
         draw_instrument_view(canvas, tracker);
         draw_instrument_program_view(canvas, tracker);
+        break;
+    }
+
+    case SAMPLE_EDITOR_VIEW: {
+        draw_sample_view(canvas, tracker);
         break;
     }
 
@@ -107,11 +130,14 @@ int32_t flizzer_tracker_app(void* p) {
 
     FlizzerTrackerApp* tracker = init_tracker(44100, 50, true, 1024);
 
-    tracker->song.samples[0] = (SoundEngineDPCMsample*)malloc(sizeof(SoundEngineDPCMsample));
+    //tracker->song.samples[0] = (SoundEngineDPCMsample*)malloc(sizeof(SoundEngineDPCMsample));
 
-    memset(tracker->song.samples[0], 0, sizeof(SoundEngineDPCMsample));
+    //memset(tracker->song.samples[0], 0, sizeof(SoundEngineDPCMsample));
 
+    tracker->song.num_samples = 1;
     tracker->song.samples[0]->data = (uint8_t*)malloc(16);
+
+    strcpy((char*)&tracker->song.samples[0]->name, "TEXT");
 
     tracker->song.samples[0]->initial_delta_counter_position = 32;
     tracker->song.samples[0]->delta_counter_position_on_loop_start = 32;
@@ -139,7 +165,8 @@ int32_t flizzer_tracker_app(void* p) {
 
     tracker->song.instrument[0]->sample = 0;
     tracker->song.instrument[0]->sample_pointer = tracker->song.samples[0];
-    tracker->song.instrument[0]->sound_engine_flags |= SE_ENABLE_SAMPLE;
+    tracker->song.instrument[0]->sound_engine_flags |= SE_ENABLE_SAMPLE |
+                                                       SE_SAMPLE_OVERRIDE_ENVELOPE;
 
     // Текущее событие типа кастомного типа FlizzerTrackerEvent
     FlizzerTrackerEvent event;
@@ -231,7 +258,39 @@ int32_t flizzer_tracker_app(void* p) {
 
             else {
                 furi_string_free(path);
-                tracker->is_loading = false;
+                tracker->is_loading_instrument = false;
+            }
+        }
+
+        if(event.type == EventTypeLoadSample) {
+            stop_song(tracker);
+
+            tracker->dialogs = furi_record_open(RECORD_DIALOGS);
+            tracker->is_loading_sample = true;
+
+            FuriString* path;
+            path = furi_string_alloc();
+            furi_string_set(path, FLIZZER_TRACKER_FOLDER);
+
+            DialogsFileBrowserOptions browser_options;
+            dialog_file_browser_set_basic_options(&browser_options, ".wav", &I_wav_icon);
+            browser_options.base_path = FLIZZER_TRACKER_FOLDER;
+            browser_options.hide_ext = false;
+
+            bool ret = dialog_file_browser_show(tracker->dialogs, path, path, &browser_options);
+
+            furi_record_close(RECORD_DIALOGS);
+
+            const char* cpath = furi_string_get_cstr(path);
+
+            if(ret && strcmp(&cpath[strlen(cpath) - 4], ".wav") == 0) {
+                bool result = load_sample_util(tracker, path);
+                UNUSED(result);
+            }
+
+            else {
+                furi_string_free(path);
+                tracker->is_loading_sample = false;
             }
         }
 

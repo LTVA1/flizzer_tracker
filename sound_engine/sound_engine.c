@@ -129,6 +129,11 @@ void sound_engine_fill_buffer(
                 channel_output[chan] =
                     sound_engine_osc(sound_engine, channel, prev_acc) - WAVE_AMP / 2;
 
+                if((channel->flags & SE_ENABLE_SAMPLE) &&
+                   !(channel->flags & SE_SAMPLE_OVERRIDE_ENVELOPE)) {
+                    channel_output[chan] += (int32_t)sound_engine_get_dpcm(channel->sample);
+                }
+
                 if(channel->flags & SE_ENABLE_RING_MOD) {
                     uint8_t ring_mod_src = channel->ring_mod == 0xff ? i : channel->ring_mod;
                     channel_output[chan] =
@@ -138,7 +143,8 @@ void sound_engine_fill_buffer(
                 channel_output_final[chan] = sound_engine_cycle_and_output_adsr(
                     channel_output[chan], sound_engine, &channel->adsr, channel, &channel->flags);
 
-                if(channel->flags & SE_ENABLE_SAMPLE) {
+                if((channel->flags & SE_ENABLE_SAMPLE) &&
+                   (channel->flags & SE_SAMPLE_OVERRIDE_ENVELOPE)) {
                     channel_output_final[chan] += (int32_t)sound_engine_get_dpcm(channel->sample);
                 }
 

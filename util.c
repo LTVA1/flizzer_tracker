@@ -198,5 +198,10 @@ void set_default_song(FlizzerTrackerApp* tracker) {
 
     set_default_instrument(tracker->song.instrument[0]);
 
+    for(uint8_t i = 0; i < MAX_DPCM_SAMPLES; i++) {
+        tracker->song.samples[i] = (SoundEngineDPCMsample*)malloc(sizeof(SoundEngineDPCMsample));
+        memset(tracker->song.samples[i], 0, sizeof(SoundEngineDPCMsample));
+    }
+
     tracker->tracker_engine.playing = false;
 }

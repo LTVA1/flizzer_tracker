@@ -10,3 +10,4 @@
 bool load_song(TrackerSong* song, Stream* stream);
 bool load_instrument(Instrument* inst, Stream* stream);
 void load_instrument_inner(Stream* stream, Instrument* inst, uint8_t version);
+void load_sample_inner(Stream* stream, SoundEngineDPCMsample* sample, uint8_t version);

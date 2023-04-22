@@ -57,6 +57,12 @@ void load_instrument_inner(Stream* stream, Instrument* inst, uint8_t version) {
     UNUSED(rwops);
 }
 
+void load_sample_inner(Stream* stream, SoundEngineDPCMsample* sample, uint8_t version) {
+    UNUSED(stream);
+    UNUSED(sample);
+    UNUSED(version);
+}
+
 bool load_song_inner(TrackerSong* song, Stream* stream) {
     uint8_t version = 0;
     size_t rwops = stream_read(stream, (uint8_t*)&version, sizeof(version));

@@ -38,6 +38,16 @@ void return_from_keyboard_callback(void* ctx) {
             }
         }
 
+        if(tracker->focus == EDIT_SAMPLE && tracker->mode == SAMPLE_EDITOR_VIEW) {
+            switch(tracker->selected_param) {
+            case SAMPLE_NAME: {
+                string_length = WAVE_NAME_LEN;
+                string = (char*)&tracker->song.samples[tracker->current_sample]->name;
+                break;
+            }
+            }
+        }
+
         if(string == NULL || string_length == 0) return;
 
         for(uint8_t i = 0; i < string_length;
@@ -335,6 +345,37 @@ void submenu_copypaste_callback(void* context, uint32_t index) {
     view_dispatcher_switch_to_view(tracker->view_dispatcher, VIEW_TRACKER);
 }
 
+void sample_submenu_callback(void* context, uint32_t index) {
+    FlizzerTrackerApp* tracker = (FlizzerTrackerApp*)context;
+
+    switch(index) {
+    case SUBMENU_SAMPLE_LOAD: {
+        FlizzerTrackerEvent event = {.type = EventTypeLoadSample, .input = {{0}}, .period = 0};
+        furi_message_queue_put(tracker->event_queue, &event, FuriWaitForever);
+        break;
+    }
+
+    case SUBMENU_SAMPLE_EXIT: {
+        tracker->quit = true;
+
+        static InputEvent inevent = {.sequence = 0, .key = InputKeyLeft, .type = InputTypeMAX};
+        FlizzerTrackerEvent event = {
+            .type = EventTypeInput,
+            .input = inevent,
+            .period =
+                0}; // making an event so tracker does not wait for next keypress and exits immediately
+        furi_message_queue_put(tracker->event_queue, &event, FuriWaitForever);
+        view_dispatcher_switch_to_view(tracker->view_dispatcher, VIEW_TRACKER);
+        break;
+    }
+
+    default:
+        break;
+    }
+
+    view_dispatcher_switch_to_view(tracker->view_dispatcher, VIEW_TRACKER);
+}
+
 void audio_output_changed_callback(VariableItem* item) {
     FlizzerTrackerApp* tracker = (FlizzerTrackerApp*)variable_item_get_context(item);
     uint8_t index = variable_item_get_current_value_index(item);
@@ -398,8 +439,18 @@ void cycle_view(FlizzerTrackerApp* tracker) {
     }
 
     if(tracker->mode == INST_EDITOR_VIEW) {
+        tracker->mode = SAMPLE_EDITOR_VIEW;
+        tracker->focus = EDIT_SAMPLE;
+
+        tracker->selected_param = 0;
+        tracker->current_digit = 0;
+
+        return;
+    }
+
+    if(tracker->mode == SAMPLE_EDITOR_VIEW) {
         tracker->mode = PATTERN_VIEW;
-        tracker->focus = EDIT_PATTERN;
+        tracker->focus = EDIT_SONGINFO;
 
         if(tracker->tracker_engine.song == NULL) {
             stop_song(tracker);
@@ -421,7 +472,8 @@ void process_input_event(FlizzerTrackerApp* tracker, FlizzerTrackerEvent* event)
     }
 
     if(tracker->showing_help || tracker->is_loading || tracker->is_saving ||
-       tracker->is_loading_instrument || tracker->is_saving_instrument)
+       tracker->is_loading_instrument || tracker->is_saving_instrument ||
+       tracker->is_loading_sample)
         return; //do not react until these are finished
 
     if(event->input.key == InputKeyBack && event->input.type == InputTypeShort &&
@@ -462,6 +514,12 @@ void process_input_event(FlizzerTrackerApp* tracker, FlizzerTrackerEvent* event)
             break;
         }
 
+        case SAMPLE_EDITOR_VIEW: {
+            submenu_set_selected_item(tracker->sample_submenu, SUBMENU_SAMPLE_LOAD);
+            view_dispatcher_switch_to_view(tracker->view_dispatcher, VIEW_SUBMENU_SAMPLE);
+            break;
+        }
+
         default:
             break;
         }
@@ -492,6 +550,11 @@ void process_input_event(FlizzerTrackerApp* tracker, FlizzerTrackerEvent* event)
 
     case EDIT_PROGRAM: {
         instrument_program_edit_event(tracker, event);
+        break;
+    }
+
+    case EDIT_SAMPLE: {
+        sample_edit_event(tracker, event);
         break;
     }
 

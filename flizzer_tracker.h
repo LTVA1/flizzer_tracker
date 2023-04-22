@@ -34,6 +34,7 @@ typedef enum {
     EventTypeLoadInstrument,
     EventTypeSaveInstrument,
     EventTypeSetAudioMode,
+    EventTypeLoadSample,
 } EventType;
 
 typedef struct {
@@ -45,6 +46,7 @@ typedef struct {
 typedef enum {
     PATTERN_VIEW,
     INST_EDITOR_VIEW,
+    SAMPLE_EDITOR_VIEW,
     EXPORT_WAV_VIEW,
 } TrackerMode;
 
@@ -54,6 +56,7 @@ typedef enum {
     EDIT_SONGINFO,
     EDIT_INSTRUMENT,
     EDIT_PROGRAM,
+    EDIT_SAMPLE,
 } TrackerFocus;
 
 typedef enum {
@@ -119,10 +122,25 @@ typedef enum {
     INST_PWMDELAY,
 
     INST_PROGRESTART,
+
+    INST_ENABLESAMPLE,
+    INST_SAMPLENUMBER,
+    INST_SAMPLEOVERRIDEVOLUMEENVELOPE,
+
     INST_PROGRAMEPERIOD,
     /* ========= */
     INST_PARAMS,
 } InstrumentParam;
+
+typedef enum {
+    SAMPLE_NUMBER,
+    SAMPLE_NAME,
+    SAMPLE_LOOP,
+    SAMPLE_LOOP_START,
+    SAMPLE_LOOP_END,
+    /* ========  */
+    SAMPLE_PARAMS,
+} SampleParam;
 
 typedef struct {
     View* view;
@@ -135,6 +153,7 @@ typedef enum {
     VIEW_SUBMENU_PATTERN,
     VIEW_SUBMENU_PATTERN_COPYPASTE,
     VIEW_SUBMENU_INSTRUMENT,
+    VIEW_SUBMENU_SAMPLE,
     VIEW_FILE_OVERWRITE,
     VIEW_INSTRUMENT_FILE_OVERWRITE,
     VIEW_SETTINGS,
@@ -161,6 +180,11 @@ typedef enum {
     SUBMENU_INSTRUMENT_EXIT,
 } InstrumentSubmenuParams;
 
+typedef enum {
+    SUBMENU_SAMPLE_LOAD,
+    SUBMENU_SAMPLE_EXIT,
+} SampleSubmenuParams;
+
 typedef struct {
     NotificationApp* notification;
     FuriMessageQueue* event_queue;
@@ -175,6 +199,7 @@ typedef struct {
     Submenu* pattern_submenu;
     Submenu* pattern_copypaste_submenu;
     Submenu* instrument_submenu;
+    Submenu* sample_submenu;
     VariableItemList* settings_list;
     Widget* overwrite_file_widget;
     Widget* overwrite_instrument_file_widget;
@@ -200,6 +225,8 @@ typedef struct {
 
     int16_t source_pattern_index;
 
+    uint8_t current_sample;
+
     bool editing;
     bool was_editing;
 
@@ -207,6 +234,7 @@ typedef struct {
     bool is_saving;
     bool is_loading_instrument;
     bool is_saving_instrument;
+    bool is_loading_sample;
     bool showing_help;
 
     bool cut_pattern; //if we need to clear the pattern we pasted from
@@ -216,6 +244,11 @@ typedef struct {
     char eq[2];
     char param[80];
     char value[10];
+
+    uint32_t sample_import_progress;
+
+    uint16_t sample_rate, bit_depth, num_channels;
+    uint32_t length;
 } FlizzerTrackerApp;
 
 typedef struct {

@@ -9,3 +9,13 @@
 
 void draw_instrument_view(Canvas* canvas, FlizzerTrackerApp* tracker);
 void draw_instrument_program_view(Canvas* canvas, FlizzerTrackerApp* tracker);
+void draw_inst_flag(
+    FlizzerTrackerApp* tracker,
+    Canvas* canvas,
+    uint8_t focus,
+    uint8_t param,
+    const char* text,
+    uint8_t x,
+    uint8_t y,
+    uint16_t flags,
+    uint16_t mask);

@@ -84,12 +84,14 @@ FlizzerTrackerApp* init_tracker(
     tracker->pattern_submenu = submenu_alloc();
     tracker->pattern_copypaste_submenu = submenu_alloc();
     tracker->instrument_submenu = submenu_alloc();
+    tracker->sample_submenu = submenu_alloc();
 
     view_set_previous_callback(submenu_get_view(tracker->pattern_submenu), submenu_exit_callback);
     view_set_previous_callback(
         submenu_get_view(tracker->pattern_copypaste_submenu), submenu_exit_callback);
     view_set_previous_callback(
         submenu_get_view(tracker->instrument_submenu), submenu_exit_callback);
+    view_set_previous_callback(submenu_get_view(tracker->sample_submenu), submenu_exit_callback);
 
     submenu_add_item(
         tracker->pattern_submenu,
@@ -150,6 +152,15 @@ FlizzerTrackerApp* init_tracker(
         submenu_copypaste_callback,
         tracker);
 
+    submenu_add_item(
+        tracker->sample_submenu,
+        "Load sample",
+        SUBMENU_SAMPLE_LOAD,
+        sample_submenu_callback,
+        tracker);
+    submenu_add_item(
+        tracker->sample_submenu, "Exit", SUBMENU_SAMPLE_EXIT, sample_submenu_callback, tracker);
+
     view_dispatcher_add_view(
         tracker->view_dispatcher,
         VIEW_SUBMENU_PATTERN,
@@ -162,6 +173,8 @@ FlizzerTrackerApp* init_tracker(
         tracker->view_dispatcher,
         VIEW_SUBMENU_INSTRUMENT,
         submenu_get_view(tracker->instrument_submenu));
+    view_dispatcher_add_view(
+        tracker->view_dispatcher, VIEW_SUBMENU_SAMPLE, submenu_get_view(tracker->sample_submenu));
 
     load_config(tracker);
 
@@ -264,6 +277,7 @@ void deinit_tracker(FlizzerTrackerApp* tracker) {
     view_dispatcher_remove_view(tracker->view_dispatcher, VIEW_SUBMENU_INSTRUMENT);
     view_dispatcher_remove_view(tracker->view_dispatcher, VIEW_SUBMENU_PATTERN_COPYPASTE);
     view_dispatcher_remove_view(tracker->view_dispatcher, VIEW_SUBMENU_PATTERN);
+    view_dispatcher_remove_view(tracker->view_dispatcher, VIEW_SUBMENU_SAMPLE);
     view_dispatcher_remove_view(tracker->view_dispatcher, VIEW_KEYBOARD);
     view_dispatcher_remove_view(tracker->view_dispatcher, VIEW_TRACKER);
 
@@ -274,6 +288,7 @@ void deinit_tracker(FlizzerTrackerApp* tracker) {
     submenu_free(tracker->pattern_submenu);
     submenu_free(tracker->pattern_copypaste_submenu);
     submenu_free(tracker->instrument_submenu);
+    submenu_free(tracker->sample_submenu);
 
     widget_free(tracker->overwrite_file_widget);
     widget_free(tracker->overwrite_instrument_file_widget);
