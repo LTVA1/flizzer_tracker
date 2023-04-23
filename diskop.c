@@ -61,6 +61,44 @@ void save_instrument_inner(Stream* stream, Instrument* inst) {
         rwops = stream_write(stream, (uint8_t*)&inst->filter_type, sizeof(inst->filter_type));
     }
 
+    if(inst->sound_engine_flags & SE_ENABLE_SAMPLE)
+    {
+        rwops = stream_write(stream, (uint8_t*)&inst->sample, sizeof(inst->sample));
+    }
+
+    UNUSED(rwops);
+}
+
+void save_sample_inner(Stream* stream, SoundEngineDPCMsample* sample)
+{
+    size_t rwops = stream_write(stream, (uint8_t*)sample->name, sizeof(sample->name));
+    rwops = stream_write(stream, (uint8_t*)&sample->flags, sizeof(sample->flags));
+    rwops = stream_write(stream, (uint8_t*)&sample->initial_delta_counter_position, sizeof(sample->initial_delta_counter_position));
+
+    uint32_t length = sample->length;
+
+    if(sample->data == NULL)
+    {
+        length = 0;
+    }
+
+    rwops = stream_write(stream, (uint8_t*)&length, sizeof(length));
+
+    if(sample->flags & SE_SAMPLE_LOOP)
+    {
+        rwops = stream_write(stream, (uint8_t*)&sample->loop_start, sizeof(sample->loop_start));
+        rwops = stream_write(stream, (uint8_t*)&sample->loop_end, sizeof(sample->loop_end));
+        rwops = stream_write(stream, (uint8_t*)&sample->delta_counter_position_on_loop_start, sizeof(sample->delta_counter_position_on_loop_start));
+    }
+
+    if(length > 0)
+    {
+        for(uint32_t i = 0; i < sample->length / 8 + 1; i++)
+        {
+            rwops = stream_write(stream, &sample->data[i], 1);
+        }
+    }
+
     UNUSED(rwops);
 }
 
@@ -141,6 +179,13 @@ bool save_song(FlizzerTrackerApp* tracker, FuriString* filepath) {
 
     for(uint16_t i = 0; i < song->num_instruments; i++) {
         save_instrument_inner(tracker->stream, song->instrument[i]);
+    }
+
+    rwops = stream_write(
+        tracker->stream, (uint8_t*)&song->num_samples, sizeof(song->num_samples));
+    
+    for(uint16_t i = 0; i < song->num_samples; i++) {
+        save_sample_inner(tracker->stream, song->samples[i]);
     }
 
     file_stream_close(tracker->stream);

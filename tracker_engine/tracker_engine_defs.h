@@ -29,7 +29,7 @@
 #define INST_FILE_SIG "FZT!INST"
 #define INST_FILE_EXT ".fzi"
 
-#define TRACKER_ENGINE_VERSION 1
+#define TRACKER_ENGINE_VERSION 2
 
 #define MIDDLE_C (12 * 4)
 #define MAX_NOTE (12 * 7 + 11)
