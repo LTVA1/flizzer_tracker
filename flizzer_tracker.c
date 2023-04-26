@@ -220,6 +220,7 @@ int32_t flizzer_tracker_app(void* p) {
 
             if(ret && strcmp(&cpath[strlen(cpath) - 4], SONG_FILE_EXT) == 0) {
                 bool result = load_song_util(tracker, path);
+                tracker->current_sample = 0;
                 UNUSED(result);
             }
 

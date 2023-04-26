@@ -170,6 +170,15 @@ bool load_song_inner(TrackerSong* song, Stream* stream) {
         }
     }
 
+    else
+    {
+        if(song->samples[0] == NULL)
+        {
+            song->samples[0] = (SoundEngineDPCMsample*)malloc(sizeof(SoundEngineDPCMsample));
+            memset(song->samples[0], 0, sizeof(SoundEngineDPCMsample));
+        }
+    }
+
     UNUSED(rwops);
     return false;
 }
