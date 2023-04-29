@@ -164,6 +164,12 @@ bool load_song_inner(TrackerSong* song, Stream* stream) {
     {
         rwops = stream_read(stream, &song->num_samples, sizeof(song->num_samples));
 
+        if(song->num_samples == 0)
+        {
+            song->samples[0] = (SoundEngineDPCMsample*)malloc(sizeof(SoundEngineDPCMsample));
+            memset(song->samples[0], 0, sizeof(SoundEngineDPCMsample));
+        }
+
         for(uint8_t i = 0; i < song->num_samples; i++)
         {
             load_sample_inner(stream, song->samples[i], version);
