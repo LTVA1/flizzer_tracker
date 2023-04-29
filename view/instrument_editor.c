@@ -143,6 +143,7 @@ static const char* instrument_editor_params_description[] = {
     "ENABLE DPCM SAMPLE",
     "SAMPLE NUMBER",
     "SAMPLE:OVERRIDE VOLUME ENVELOPE",
+    "SAMPLE:LOCK TO BASE NOTE",
     "PROG.PERIOD (00 = PROGRAM OFF)",
 };
 
@@ -529,6 +530,17 @@ void draw_instrument_view(Canvas* canvas, FlizzerTrackerApp* tracker) {
             65 + 6 - shift,
             inst->sound_engine_flags,
             SE_SAMPLE_OVERRIDE_ENVELOPE);
+
+        draw_inst_flag(
+            tracker,
+            canvas,
+            EDIT_INSTRUMENT,
+            INST_SAMPLELOCKTOBASENOTE,
+            "L",
+            64,
+            65 + 6 - shift,
+            inst->flags,
+            TE_SAMPLE_LOCK_TO_BASE_NOTE);
     }
 
     draw_inst_text_two_digits(

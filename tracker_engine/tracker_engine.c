@@ -214,6 +214,8 @@ void tracker_engine_trigger_instrument_internal(
                     se_channel->sample->initial_delta_counter_position;
                 se_channel->sample->position = 0;
                 se_channel->sample->playing = true;
+
+                se_channel->accumulator = 0;
             }
         }
 
@@ -225,6 +227,8 @@ void tracker_engine_trigger_instrument_internal(
                     se_channel->sample->initial_delta_counter_position;
                 se_channel->sample->position = 0;
                 se_channel->sample->playing = true;
+
+                se_channel->accumulator = 0;
             }
         }
     }
@@ -480,6 +484,24 @@ void tracker_engine_advance_channel(TrackerEngine* tracker_engine, uint8_t chan)
 
         if(chn_note > ((12 * 7 + 11) << 8)) {
             chn_note = ((12 * 7 + 11) << 8); // highest note is B-7
+        }
+
+        if(te_channel->instrument)
+        {
+            if(te_channel->instrument->sample_pointer)
+            {
+                if(te_channel->flags & TE_SAMPLE_LOCK_TO_BASE_NOTE)
+                {
+                    te_channel->instrument->sample_pointer->frequency = DPCM_ACC_LENGTH;
+                }
+
+                else
+                {
+                    uint32_t dpcm_freq = (uint64_t)get_freq(chn_note) * DPCM_ACC_LENGTH / get_freq((te_channel->instrument->base_note << 8) + te_channel->instrument->finetune);
+
+                    te_channel->instrument->sample_pointer->frequency = my_min(dpcm_freq, DPCM_ACC_LENGTH);
+                }
+            }
         }
 
         tracker_engine_set_note(tracker_engine, chan, (uint16_t)chn_note, false);

@@ -376,6 +376,11 @@ void edit_instrument_param(FlizzerTrackerApp* tracker, uint8_t selected_param, i
         break;
     }
 
+    case INST_SAMPLELOCKTOBASENOTE: {
+        flipbit(inst->flags, TE_SAMPLE_LOCK_TO_BASE_NOTE);
+        break;
+    }
+
     case INST_PROGRAMEPERIOD: {
         if((int16_t)inst->program_period + (int16_t)delta >= 0 &&
            (int16_t)inst->program_period + (int16_t)delta <= 0xff) {
@@ -459,6 +464,7 @@ void instrument_edit_event(FlizzerTrackerApp* tracker, FlizzerTrackerEvent* even
         case INST_ENABLEPWM:
         case INST_ENABLESAMPLE:
         case INST_SAMPLEOVERRIDEVOLUMEENVELOPE:
+        case INST_SAMPLELOCKTOBASENOTE:
         case INST_PROGRESTART: {
             tracker->selected_param++;
 
@@ -515,6 +521,7 @@ void instrument_edit_event(FlizzerTrackerApp* tracker, FlizzerTrackerEvent* even
         case INST_ENABLEPWM:
         case INST_ENABLESAMPLE:
         case INST_SAMPLEOVERRIDEVOLUMEENVELOPE:
+        case INST_SAMPLELOCKTOBASENOTE:
         case INST_PROGRESTART: {
             tracker->selected_param--;
 

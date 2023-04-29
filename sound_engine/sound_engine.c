@@ -128,10 +128,15 @@ void sound_engine_fill_buffer(
 
                 channel_output[chan] =
                     sound_engine_osc(sound_engine, channel, prev_acc) - WAVE_AMP / 2;
+                
+                if(channel->flags & SE_ENABLE_SAMPLE)
+                {
+                    channel->sample->accumulator += channel->sample->frequency;
+                }
 
                 if((channel->flags & SE_ENABLE_SAMPLE) &&
                    !(channel->flags & SE_SAMPLE_OVERRIDE_ENVELOPE)) {
-                    channel_output[chan] += (int32_t)sound_engine_get_dpcm(channel->sample);
+                    channel_output[chan] += (int32_t)sound_engine_get_dpcm(channel->sample, (bool)(channel->sample->accumulator & DPCM_ACC_LENGTH));
                 }
 
                 if(channel->flags & SE_ENABLE_RING_MOD) {
@@ -145,7 +150,12 @@ void sound_engine_fill_buffer(
 
                 if((channel->flags & SE_ENABLE_SAMPLE) &&
                    (channel->flags & SE_SAMPLE_OVERRIDE_ENVELOPE)) {
-                    channel_output_final[chan] += (int32_t)sound_engine_get_dpcm(channel->sample);
+                    channel_output_final[chan] += (int32_t)sound_engine_get_dpcm(channel->sample, (bool)(channel->sample->accumulator & DPCM_ACC_LENGTH));
+                }
+
+                if(channel->flags & SE_ENABLE_SAMPLE)
+                {
+                    channel->sample->accumulator &= DPCM_ACC_LENGTH - 1;
                 }
 
                 if(channel->flags & SE_ENABLE_FILTER) {

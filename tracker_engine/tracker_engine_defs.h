@@ -41,6 +41,7 @@ typedef enum {
     TE_SET_CUTOFF = 8,
     TE_SET_PW = 16,
     TE_RETRIGGER_ON_SLIDE = 32, // call trigger instrument function even if slide command is there
+    TE_SAMPLE_LOCK_TO_BASE_NOTE = 64,
 } TrackerEngineFlags;
 
 typedef enum {

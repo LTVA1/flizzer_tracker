@@ -11,6 +11,9 @@
 #define ACC_BITS 23
 #define ACC_LENGTH (1 << (ACC_BITS - 1))
 
+#define DPCM_ACC_BITS 16
+#define DPCM_ACC_LENGTH (1 << (DPCM_ACC_BITS - 1))
+
 #define OUTPUT_BITS 16
 #define WAVE_AMP (1 << OUTPUT_BITS)
 
@@ -92,6 +95,9 @@ typedef struct {
 
     uint8_t flags;
     bool playing;
+
+    uint16_t accumulator;
+    uint16_t frequency;
 } SoundEngineDPCMsample;
 
 typedef struct {
