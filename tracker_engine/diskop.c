@@ -54,10 +54,8 @@ void load_instrument_inner(Stream* stream, Instrument* inst, uint8_t version) {
         rwops = stream_read(stream, (uint8_t*)&inst->filter_type, sizeof(inst->filter_type));
     }
 
-    if(version > 1)
-    {
-        if(inst->sound_engine_flags & SE_ENABLE_SAMPLE)
-        {
+    if(version > 1) {
+        if(inst->sound_engine_flags & SE_ENABLE_SAMPLE) {
             rwops = stream_read(stream, (uint8_t*)&inst->sample, sizeof(inst->sample));
         }
     }
@@ -68,28 +66,30 @@ void load_instrument_inner(Stream* stream, Instrument* inst, uint8_t version) {
 void load_sample_inner(Stream* stream, SoundEngineDPCMsample* sample, uint8_t version) {
     size_t rwops = stream_read(stream, (uint8_t*)sample->name, sizeof(sample->name));
     rwops = stream_read(stream, (uint8_t*)&sample->flags, sizeof(sample->flags));
-    rwops = stream_read(stream, (uint8_t*)&sample->initial_delta_counter_position, sizeof(sample->initial_delta_counter_position));
+    rwops = stream_read(
+        stream,
+        (uint8_t*)&sample->initial_delta_counter_position,
+        sizeof(sample->initial_delta_counter_position));
 
     rwops = stream_read(stream, (uint8_t*)&sample->length, sizeof(sample->length));
 
-    if(sample->data)
-    {
+    if(sample->data) {
         free(sample->data);
     }
 
-    if(sample->flags & SE_SAMPLE_LOOP)
-    {
+    if(sample->flags & SE_SAMPLE_LOOP) {
         rwops = stream_read(stream, (uint8_t*)&sample->loop_start, sizeof(sample->loop_start));
         rwops = stream_read(stream, (uint8_t*)&sample->loop_end, sizeof(sample->loop_end));
-        rwops = stream_read(stream, (uint8_t*)&sample->delta_counter_position_on_loop_start, sizeof(sample->delta_counter_position_on_loop_start));
+        rwops = stream_read(
+            stream,
+            (uint8_t*)&sample->delta_counter_position_on_loop_start,
+            sizeof(sample->delta_counter_position_on_loop_start));
     }
 
-    if(sample->length > 0)
-    {
+    if(sample->length > 0) {
         sample->data = (uint8_t*)malloc(sample->length / 8 + 1);
 
-        for(uint32_t i = 0; i < sample->length / 8 + 1; i++)
-        {
+        for(uint32_t i = 0; i < sample->length / 8 + 1; i++) {
             rwops = stream_read(stream, &sample->data[i], 1);
         }
     }
@@ -148,10 +148,8 @@ bool load_song_inner(TrackerSong* song, Stream* stream) {
         set_default_instrument(song->instrument[i]);
         load_instrument_inner(stream, song->instrument[i], version);
 
-        if(song->instrument[i]->sound_engine_flags & SE_ENABLE_SAMPLE)
-        {
-            if(song->samples[i] == NULL)
-            {
+        if(song->instrument[i]->sound_engine_flags & SE_ENABLE_SAMPLE) {
+            if(song->samples[i] == NULL) {
                 song->samples[i] = (SoundEngineDPCMsample*)malloc(sizeof(SoundEngineDPCMsample));
                 memset(song->samples[i], 0, sizeof(SoundEngineDPCMsample));
             }
@@ -160,26 +158,26 @@ bool load_song_inner(TrackerSong* song, Stream* stream) {
         }
     }
 
-    if(version > 1)
-    {
+    if(version > 1) {
         rwops = stream_read(stream, &song->num_samples, sizeof(song->num_samples));
 
-        if(song->num_samples == 0)
-        {
+        if(song->num_samples == 0) {
             song->samples[0] = (SoundEngineDPCMsample*)malloc(sizeof(SoundEngineDPCMsample));
             memset(song->samples[0], 0, sizeof(SoundEngineDPCMsample));
         }
 
-        for(uint8_t i = 0; i < song->num_samples; i++)
-        {
+        for(uint8_t i = 0; i < song->num_samples; i++) {
+            if(song->samples[i] == NULL) {
+                song->samples[i] = (SoundEngineDPCMsample*)malloc(sizeof(SoundEngineDPCMsample));
+                memset(song->samples[i], 0, sizeof(SoundEngineDPCMsample));
+            }
+
             load_sample_inner(stream, song->samples[i], version);
         }
     }
 
-    else
-    {
-        if(song->samples[0] == NULL)
-        {
+    else {
+        if(song->samples[0] == NULL) {
             song->samples[0] = (SoundEngineDPCMsample*)malloc(sizeof(SoundEngineDPCMsample));
             memset(song->samples[0], 0, sizeof(SoundEngineDPCMsample));
         }

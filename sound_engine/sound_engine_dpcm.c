@@ -3,8 +3,7 @@
 int32_t sound_engine_get_dpcm(SoundEngineDPCMsample* sample, bool advance) {
     if(!(sample->playing)) return 0;
 
-    if(advance)
-    {
+    if(advance) {
         if(sample->flags & SE_SAMPLE_LOOP) {
             if(sample->position > sample->loop_end) {
                 sample->position = sample->loop_start;
@@ -12,7 +11,7 @@ int32_t sound_engine_get_dpcm(SoundEngineDPCMsample* sample, bool advance) {
             }
         }
 
-        if(sample->position >= sample->length) {
+        if(sample->position > sample->length) {
             sample->playing = false;
             return 0;
         }

@@ -46,14 +46,19 @@ int32_t sound_engine_cycle_and_output_adsr(
         }
 
         else {
-            adsr->envelope_state = DONE;
-            *flags &= ~SE_ENABLE_GATE;
-
-            if(ch->sample) {
-                ch->sample->playing = false;
+            if(!ch->sample) {
+                adsr->envelope_state = DONE;
+                *flags &= ~SE_ENABLE_GATE;
+                adsr->envelope = 0;
             }
 
-            adsr->envelope = 0;
+            if(ch->sample && (!(ch->sample->flags & SE_SAMPLE_LOOP))) {
+                ch->sample->playing = false;
+
+                adsr->envelope_state = DONE;
+                *flags &= ~SE_ENABLE_GATE;
+                adsr->envelope = 0;
+            }
         }
 
         break;

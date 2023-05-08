@@ -21,12 +21,14 @@ void tracker_engine_deinit_song(TrackerSong* song, bool free_song) {
     for(int i = 0; i < MAX_PATTERNS; i++) {
         if(song->pattern[i].step != NULL) {
             free(song->pattern[i].step);
+            song->pattern[i].step = NULL;
         }
     }
 
     for(int i = 0; i < MAX_INSTRUMENTS; i++) {
         if(song->instrument[i] != NULL) {
             free(song->instrument[i]);
+            song->instrument[i] = NULL;
         }
     }
 
@@ -37,6 +39,7 @@ void tracker_engine_deinit_song(TrackerSong* song, bool free_song) {
             }
 
             free(song->samples[i]);
+            song->samples[i] = NULL;
         }
     }
 
@@ -206,7 +209,8 @@ void tracker_engine_trigger_instrument_internal(
         se_channel->lfsr = RANDOM_SEED;
     }
 
-    if(pinst->sound_engine_flags & SE_ENABLE_SAMPLE) {
+    if((pinst->sound_engine_flags & SE_ENABLE_SAMPLE) &&
+       !(te_channel->channel_flags & TEC_DISABLED)) {
         if(tracker_engine->song) {
             if(tracker_engine->song->samples[pinst->sample] != 0) {
                 se_channel->sample = tracker_engine->song->samples[pinst->sample];
@@ -231,6 +235,10 @@ void tracker_engine_trigger_instrument_internal(
                 se_channel->accumulator = 0;
             }
         }
+    }
+
+    else {
+        se_channel->flags &= ~(SE_ENABLE_SAMPLE);
     }
 
     if(pinst->flags & TE_SET_CUTOFF) {
@@ -486,20 +494,20 @@ void tracker_engine_advance_channel(TrackerEngine* tracker_engine, uint8_t chan)
             chn_note = ((12 * 7 + 11) << 8); // highest note is B-7
         }
 
-        if(te_channel->instrument)
-        {
-            if(te_channel->instrument->sample_pointer)
-            {
-                if(te_channel->flags & TE_SAMPLE_LOCK_TO_BASE_NOTE)
-                {
+        if(te_channel->instrument) {
+            if(te_channel->instrument->sample_pointer) {
+                if(te_channel->flags & TE_SAMPLE_LOCK_TO_BASE_NOTE) {
                     te_channel->instrument->sample_pointer->frequency = DPCM_ACC_LENGTH;
                 }
 
-                else
-                {
-                    uint32_t dpcm_freq = (uint64_t)get_freq(chn_note) * DPCM_ACC_LENGTH / get_freq((te_channel->instrument->base_note << 8) + te_channel->instrument->finetune);
+                else {
+                    uint32_t dpcm_freq = (uint64_t)get_freq(chn_note) * DPCM_ACC_LENGTH /
+                                         get_freq(
+                                             (te_channel->instrument->base_note << 8) +
+                                             te_channel->instrument->finetune);
 
-                    te_channel->instrument->sample_pointer->frequency = my_min(dpcm_freq, DPCM_ACC_LENGTH);
+                    te_channel->instrument->sample_pointer->frequency =
+                        my_min(dpcm_freq, DPCM_ACC_LENGTH);
                 }
             }
         }
@@ -508,7 +516,7 @@ void tracker_engine_advance_channel(TrackerEngine* tracker_engine, uint8_t chan)
     }
 
     if(tracker_engine->channel[chan].channel_flags &
-       TEC_DISABLED) // so we can't set some non-zero volme from inst program too
+       TEC_DISABLED) // so we can't set some non-zero volume from inst program too
     {
         tracker_engine->sound_engine->channel[chan].adsr.volume = 0;
     }
