@@ -96,8 +96,8 @@ typedef struct {
     uint8_t flags;
     bool playing;
 
-    uint16_t accumulator;
-    uint16_t frequency;
+    uint32_t accumulator;
+    uint32_t frequency;
 } SoundEngineDPCMsample;
 
 typedef struct {

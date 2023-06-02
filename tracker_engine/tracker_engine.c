@@ -219,7 +219,15 @@ void tracker_engine_trigger_instrument_internal(
                 se_channel->sample->position = 0;
                 se_channel->sample->playing = true;
 
-                se_channel->accumulator = 0;
+                se_channel->sample->accumulator = 0;
+
+                if(te_channel->flags & TE_SAMPLE_LOCK_TO_BASE_NOTE) {
+                    se_channel->sample->frequency = DPCM_ACC_LENGTH;
+                }
+
+                else {
+                    se_channel->sample->frequency = (uint64_t)get_freq(te_channel->note) * DPCM_ACC_LENGTH / get_freq((pinst->base_note << 8) + pinst->finetune);
+                }
             }
         }
 
@@ -232,13 +240,17 @@ void tracker_engine_trigger_instrument_internal(
                 se_channel->sample->position = 0;
                 se_channel->sample->playing = true;
 
-                se_channel->accumulator = 0;
+                se_channel->sample->accumulator = 0;
+
+                if(te_channel->flags & TE_SAMPLE_LOCK_TO_BASE_NOTE) {
+                    se_channel->sample->frequency = DPCM_ACC_LENGTH;
+                }
+
+                else {
+                    se_channel->sample->frequency = (uint64_t)get_freq(te_channel->note) * DPCM_ACC_LENGTH / get_freq((pinst->base_note << 8) + pinst->finetune);
+                }
             }
         }
-    }
-
-    else {
-        se_channel->flags &= ~(SE_ENABLE_SAMPLE);
     }
 
     if(pinst->flags & TE_SET_CUTOFF) {
@@ -272,13 +284,11 @@ void tracker_engine_trigger_instrument_internal(
     se_channel->adsr.d = pinst->adsr.d;
     se_channel->adsr.s = pinst->adsr.s;
     se_channel->adsr.r = pinst->adsr.r;
-    se_channel->adsr.volume = pinst->adsr.volume;
-    se_channel->adsr.volume = (int32_t)se_channel->adsr.volume *
-                              (int32_t)tracker_engine->master_volume / MAX_ADSR_VOLUME;
+    se_channel->adsr.volume = pinst->adsr.volume * (int32_t)tracker_engine->master_volume / MAX_ADSR_VOLUME;
+    //se_channel->adsr.volume = (int32_t)se_channel->adsr.volume;
 
-    te_channel->volume = pinst->adsr.volume;
-    te_channel->volume =
-        (int32_t)te_channel->volume * (int32_t)tracker_engine->master_volume / MAX_ADSR_VOLUME;
+    te_channel->volume = pinst->adsr.volume * (int32_t)tracker_engine->master_volume / MAX_ADSR_VOLUME;
+    //te_channel->volume = (int32_t)te_channel->volume;
 
     sound_engine_enable_gate(
         tracker_engine->sound_engine, &tracker_engine->sound_engine->channel[chan], true);
@@ -501,13 +511,7 @@ void tracker_engine_advance_channel(TrackerEngine* tracker_engine, uint8_t chan)
                 }
 
                 else {
-                    uint32_t dpcm_freq = (uint64_t)get_freq(chn_note) * DPCM_ACC_LENGTH /
-                                         get_freq(
-                                             (te_channel->instrument->base_note << 8) +
-                                             te_channel->instrument->finetune);
-
-                    te_channel->instrument->sample_pointer->frequency =
-                        my_min(dpcm_freq, DPCM_ACC_LENGTH);
+                    te_channel->instrument->sample_pointer->frequency = (uint64_t)get_freq(chn_note) * DPCM_ACC_LENGTH / get_freq((te_channel->instrument->base_note << 8) + te_channel->instrument->finetune);
                 }
             }
         }

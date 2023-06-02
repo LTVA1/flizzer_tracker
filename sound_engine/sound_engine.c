@@ -135,8 +135,15 @@ void sound_engine_fill_buffer(
 
                 if((channel->flags & SE_ENABLE_SAMPLE) &&
                    !(channel->flags & SE_SAMPLE_OVERRIDE_ENVELOPE)) {
-                    channel_output[chan] += (int32_t)sound_engine_get_dpcm(
-                        channel->sample, (bool)(channel->sample->accumulator & DPCM_ACC_LENGTH));
+                    
+                    int32_t dpcm = 0;
+
+                    for(uint8_t i = 0; i < (channel->sample->accumulator >> (DPCM_ACC_BITS - 1)); i++)
+                    {
+                        dpcm = sound_engine_get_dpcm(channel->sample, true);
+                    }
+
+                    channel_output[chan] += dpcm;
                 }
 
                 if(channel->flags & SE_ENABLE_RING_MOD) {
@@ -150,10 +157,15 @@ void sound_engine_fill_buffer(
 
                 if((channel->flags & SE_ENABLE_SAMPLE) &&
                    (channel->flags & SE_SAMPLE_OVERRIDE_ENVELOPE)) {
-                    channel_output_final[chan] +=
-                        (int32_t)sound_engine_get_dpcm(
-                            channel->sample,
-                            (bool)(channel->sample->accumulator & DPCM_ACC_LENGTH)) *
+                    
+                    int32_t dpcm = 0;
+
+                    for(uint8_t i = 0; i < (channel->sample->accumulator >> (DPCM_ACC_BITS - 1)); i++)
+                    {
+                        dpcm = sound_engine_get_dpcm(channel->sample, true);
+                    }
+
+                    channel_output_final[chan] += dpcm *
                         channel->adsr.volume / MAX_ADSR_VOLUME;
                 }
 

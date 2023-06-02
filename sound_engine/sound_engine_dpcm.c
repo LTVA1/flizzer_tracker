@@ -27,14 +27,14 @@ int32_t sound_engine_get_dpcm(SoundEngineDPCMsample* sample, bool advance) {
         sample->position++;
     }
 
-    return ((int32_t)sample->delta_counter - DELTA_COUNTER_MIDDLE) * 4 * 256;
+    return (int32_t)(sample->delta_counter << (8 + 2)) - (DELTA_COUNTER_MIDDLE << (8 + 2));
 }
 
 void recalculate_dpcm_sample_delta_counter_at_loop_start(SoundEngineDPCMsample* sample) {
     uint8_t delta_counter = sample->initial_delta_counter_position;
 
     for(uint32_t i = 0; i < sample->loop_start; i++) {
-        if(sample->data[i / 8] & (1 << (i & 7))) {
+        if(sample->data[i >> 3] & (1 << (i & 7))) {
             delta_counter++;
         }
 
