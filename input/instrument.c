@@ -408,8 +408,7 @@ void instrument_edit_event(FlizzerTrackerApp* tracker, FlizzerTrackerEvent* even
             tracker->tracker_engine.sound_engine->channel[i].frequency = 0;
             tracker->tracker_engine.sound_engine->channel[i].waveform = 0;
 
-            if(tracker->tracker_engine.sound_engine->channel[i].sample)
-            {
+            if(tracker->tracker_engine.sound_engine->channel[i].sample) {
                 tracker->tracker_engine.sound_engine->channel[i].sample->playing = false;
             }
         }

@@ -226,7 +226,9 @@ void tracker_engine_trigger_instrument_internal(
                 }
 
                 else {
-                    se_channel->sample->frequency = (uint64_t)get_freq(te_channel->note) * DPCM_ACC_LENGTH / get_freq((pinst->base_note << 8) + pinst->finetune);
+                    se_channel->sample->frequency =
+                        (uint64_t)get_freq(te_channel->note) * DPCM_ACC_LENGTH /
+                        get_freq((pinst->base_note << 8) + pinst->finetune);
                 }
             }
         }
@@ -247,7 +249,9 @@ void tracker_engine_trigger_instrument_internal(
                 }
 
                 else {
-                    se_channel->sample->frequency = (uint64_t)get_freq(te_channel->note) * DPCM_ACC_LENGTH / get_freq((pinst->base_note << 8) + pinst->finetune);
+                    se_channel->sample->frequency =
+                        (uint64_t)get_freq(te_channel->note) * DPCM_ACC_LENGTH /
+                        get_freq((pinst->base_note << 8) + pinst->finetune);
                 }
             }
         }
@@ -284,10 +288,12 @@ void tracker_engine_trigger_instrument_internal(
     se_channel->adsr.d = pinst->adsr.d;
     se_channel->adsr.s = pinst->adsr.s;
     se_channel->adsr.r = pinst->adsr.r;
-    se_channel->adsr.volume = pinst->adsr.volume * (int32_t)tracker_engine->master_volume / MAX_ADSR_VOLUME;
+    se_channel->adsr.volume =
+        pinst->adsr.volume * (int32_t)tracker_engine->master_volume / MAX_ADSR_VOLUME;
     //se_channel->adsr.volume = (int32_t)se_channel->adsr.volume;
 
-    te_channel->volume = pinst->adsr.volume * (int32_t)tracker_engine->master_volume / MAX_ADSR_VOLUME;
+    te_channel->volume =
+        pinst->adsr.volume * (int32_t)tracker_engine->master_volume / MAX_ADSR_VOLUME;
     //te_channel->volume = (int32_t)te_channel->volume;
 
     sound_engine_enable_gate(
@@ -511,7 +517,11 @@ void tracker_engine_advance_channel(TrackerEngine* tracker_engine, uint8_t chan)
                 }
 
                 else {
-                    te_channel->instrument->sample_pointer->frequency = (uint64_t)get_freq(chn_note) * DPCM_ACC_LENGTH / get_freq((te_channel->instrument->base_note << 8) + te_channel->instrument->finetune);
+                    te_channel->instrument->sample_pointer->frequency =
+                        (uint64_t)get_freq(chn_note) * DPCM_ACC_LENGTH /
+                        get_freq(
+                            (te_channel->instrument->base_note << 8) +
+                            te_channel->instrument->finetune);
                 }
             }
         }

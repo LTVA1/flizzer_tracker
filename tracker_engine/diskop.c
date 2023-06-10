@@ -90,7 +90,10 @@ void load_sample_inner(Stream* stream, SoundEngineDPCMsample* sample, uint8_t ve
         sample->data = (uint8_t*)malloc(sample->length / 8 + 1);
 
         for(uint32_t i = 0; i < sample->length / 8 + 1; i += 64) {
-            rwops = stream_read(stream, &sample->data[i], ((i + 64) < (sample->length / 8 + 1)) ? 64 : (sample->length / 8 + 1 - i));
+            rwops = stream_read(
+                stream,
+                &sample->data[i],
+                ((i + 64) < (sample->length / 8 + 1)) ? 64 : (sample->length / 8 + 1 - i));
         }
     }
 
