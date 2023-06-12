@@ -47,6 +47,34 @@ void sound_engine_PWM_timer_init(bool external_audio_output) // external audio o
         //LL_TIM_DisableAllOutputs(SPEAKER_PWM_TIMER);
         //LL_TIM_DisableCounter(SPEAKER_PWM_TIMER);
 
+        if(!(furi_hal_speaker_is_mine())) {
+            if(furi_hal_speaker_acquire(1000)) {
+                LL_TIM_DisableAllOutputs(SPEAKER_PWM_TIMER);
+                LL_TIM_DisableCounter(SPEAKER_PWM_TIMER);
+
+                LL_TIM_InitTypeDef TIM_InitStruct = {0};
+                LL_TIM_OC_InitTypeDef TIM_OC_InitStruct = {0};
+
+                TIM_InitStruct.Prescaler = 0;
+                TIM_InitStruct.Autoreload =
+                    1023; // 10-bit PWM resolution at around 60 kHz PWM rate
+                TIM_InitStruct.CounterMode = LL_TIM_COUNTERMODE_UP;
+                LL_TIM_Init(SPEAKER_PWM_TIMER, &TIM_InitStruct);
+
+                TIM_OC_InitStruct.OCMode = LL_TIM_OCMODE_PWM1;
+                TIM_OC_InitStruct.OCState = LL_TIM_OCSTATE_ENABLE;
+                TIM_OC_InitStruct.CompareValue = 0;
+                LL_TIM_OC_Init(SPEAKER_PWM_TIMER, SPEAKER_PWM_TIMER_CHANNEL, &TIM_OC_InitStruct);
+
+                SPEAKER_PWM_TIMER->CNT = 0;
+
+                LL_TIM_EnableAllOutputs(SPEAKER_PWM_TIMER);
+                LL_TIM_EnableCounter(SPEAKER_PWM_TIMER);
+            }
+        }
+
+        furi_hal_gpio_init(&gpio_ext_pa6, GpioModeAnalog, GpioPullNo, GpioSpeedLow);
+
         LL_TIM_InitTypeDef TIM_InitStruct = {0};
         LL_TIM_OC_InitTypeDef TIM_OC_InitStruct = {0};
 
