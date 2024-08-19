@@ -1,3 +1,8 @@
+# Flizzer Tracker v0.5 #
+
+## Fixed ##
+- app not reacting to any keypresses
+
 # Flizzer Tracker v0.4 #
 
 ## Added ##
